@@ -13,7 +13,7 @@ No right, title, license, or interest in or to the source code (or any portion t
   (d) Compiling, packaging, redistributing, publishing, sublicensing, or launching this software or any modified version thereof under any name, branding, or account (including but not limited to Chrome Web Store releases or public repositories).
 
 3. CHROME EXTENSION DISTRIBUTIONS
-The compiled Chrome Extension distributed by [Your Name or Organization Name] is provided to end-users under its own separate Terms of Service. Nothing in this repository grants end-users or third parties any rights to extract, reverse-engineer, or reuse the underlying source code.
+The compiled Chrome Extension distributed by [Wasil Ahmad] is provided to end-users under its own separate Terms of Service. Nothing in this repository grants end-users or third parties any rights to extract, reverse-engineer, or reuse the underlying source code.
 
 4. ENFORCEMENT & REMEDIES
 Any unauthorized access, copying, modification, or redistribution of this software constitutes intentional copyright infringement under applicable national copyright laws and international treaties (including the Berne Convention). 
