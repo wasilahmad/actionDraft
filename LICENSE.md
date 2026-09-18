@@ -1,15 +1,23 @@
-Copyright (c) [2026] [Wasil Ahmad]
+PROPRIETARY AND CONFIDENTIAL SOURCE CODE LICENSE AGREEMENT
 
-All Rights Reserved.
+Copyright (c) 2026 | Wasil Ahmad | All Rights Reserved.
 
-This source code is provided solely for transparency and inspection purposes. 
+1. GRANT OF RESTRICTED ACCESS
+This source code is made publicly available strictly and exclusively for independent security auditing, inspection, and non-commercial educational review. 
 
-No permission is granted for anyone to copy, modify, merge, publish, distribute, sublicense, and/or sell copies of this software, or to claim ownership or authorship under any circumstances.
+2. PROHIBITION OF COPYING, MODIFICATION, AND DERIVATIVE WORKS
+No right, title, license, or interest in or to the source code (or any portion thereof) is transferred to you. You are expressly prohibited from doing any of the following:
+  (a) Copying, duplicating, cloning, mirroring, or reproducing any part of this code.
+  (b) Modifying, altering, adapting, translating, or creating derivative works based on this code.
+  (c) Making superficial, cosmetic, formatting, variable-renaming, or trivial structural modifications to bypass or mask the origin of this code.
+  (d) Compiling, packaging, redistributing, publishing, sublicensing, or launching this software or any modified version thereof under any name, branding, or account (including but not limited to Chrome Web Store releases or public repositories).
 
-The compiled Chrome Extension is offered free of charge, but access to or display of this source code repository does not grant any rights or licenses to the underlying source code itself.
+3. CHROME EXTENSION DISTRIBUTIONS
+The compiled Chrome Extension distributed by [Your Name or Organization Name] is provided to end-users under its own separate Terms of Service. Nothing in this repository grants end-users or third parties any rights to extract, reverse-engineer, or reuse the underlying source code.
 
-## License & Terms of Use
+4. ENFORCEMENT & REMEDIES
+Any unauthorized access, copying, modification, or redistribution of this software constitutes intentional copyright infringement under applicable national copyright laws and international treaties (including the Berne Convention). 
 
-- **Chrome Extension Usage:** Free to install and use via the [https://chromewebstore.google.com/].
-- **Source Code:** All Rights Reserved. The source code in this repository is made public strictly for reference and auditing purposes. 
-- **No permission** is granted to copy, alter, redistribute, or publish this code (in whole or in part) as your own.
+Violators will be subject to civil and criminal penalties, including but not limited to statutory damages, injunctive relief, immediate takedown demands (e.g., DMCA takedowns across hosting platforms and browser extension Web Stores), and reimbursement of legal and court fees.
+
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
