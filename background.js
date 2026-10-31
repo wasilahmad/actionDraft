@@ -18,6 +18,34 @@ chrome.runtime.onStartup.addListener(async () => {
   await configureSidePanelBehavior();
 });
 
+// Inject content script into new tabs opened during recording
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  // Only inject when page is loaded and recording is active
+  if (changeInfo.status !== 'complete') return;
+  
+  try {
+    const data = await chrome.storage.local.get([STORAGE_KEYS.IS_RECORDING]);
+    if (!data[STORAGE_KEYS.IS_RECORDING]) return;
+
+    // Skip restricted URLs
+    if (!tab.url) return;
+    if (tab.url.startsWith("chrome://") || 
+        tab.url.startsWith("chrome-extension://") ||
+        tab.url.startsWith("edge://") ||
+        tab.url.startsWith("about:")) {
+      return;
+    }
+
+    await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ["content.js"]
+    });
+  } catch (error) {
+    // Silently ignore injection errors
+    console.log(`Skipped injection for new tab ${tabId}:`, error.message);
+  }
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // console.log("[ActionDraft BG] Message received:", message.type);
   if (!message || !message.type) {
@@ -42,6 +70,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // console.log("[ActionDraft BG] Stopping recording");
     chrome.storage.local
       .set({ [STORAGE_KEYS.IS_RECORDING]: false })
+      .then(() => sendResponse({ ok: true }))
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
+  if (message.type === "CLEAR_SESSION") {
+    // console.log("[ActionDraft BG] Clearing session");
+    chrome.storage.local
+      .set({ 
+        [STORAGE_KEYS.IS_RECORDING]: false,
+        [STORAGE_KEYS.STEPS]: [],
+        [STORAGE_KEYS.GUIDE_TITLE]: ""
+      })
       .then(() => sendResponse({ ok: true }))
       .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;
@@ -117,8 +158,8 @@ async function captureAndAnnotate(sender, rect, clickX, clickY, dpr = 1) {
   ctx.save();
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, r);
-  ctx.fillStyle = "rgba(0, 200, 83, 0.10)";
-  ctx.fill();
+  // ctx.fillStyle = "rgba(0, 200, 83, 0.10)";
+  // ctx.fill();
   ctx.strokeStyle = "#00C853";
   ctx.lineWidth = 3 * dpr;
   ctx.stroke();
@@ -131,8 +172,8 @@ async function captureAndAnnotate(sender, rect, clickX, clickY, dpr = 1) {
   // 5. Draw arrow cursor at the click point
   drawCursorOnCanvas(ctx, clickX * dpr, clickY * dpr, dpr);
 
-  // 6. Re-encode to PNG → base64 data URL (optimized)
-  const outBlob = await canvas.convertToBlob({ type: "image/png", quality: 0.92 });
+  // 6. Re-encode to JPEG → base64 data URL (much better compression than PNG)
+  const outBlob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.75 });
   const arrayBuffer = await outBlob.arrayBuffer();
   const bytes = new Uint8Array(arrayBuffer);
   
@@ -142,7 +183,7 @@ async function captureAndAnnotate(sender, rect, clickX, clickY, dpr = 1) {
     binaryString += String.fromCharCode(bytes[i]);
   }
   
-  return "data:image/png;base64," + btoa(binaryString);
+  return "data:image/jpeg;base64," + btoa(binaryString);
 }
 
 function drawCursorOnCanvas(ctx, x, y, dpr) {
@@ -190,32 +231,46 @@ async function configureSidePanelBehavior() {
 }
 
 async function startRecordingFlow() {
+  // Get existing steps to preserve them when resuming
+  const data = await chrome.storage.local.get([STORAGE_KEYS.STEPS, STORAGE_KEYS.GUIDE_TITLE]);
+  const existingSteps = Array.isArray(data[STORAGE_KEYS.STEPS]) ? data[STORAGE_KEYS.STEPS] : [];
+  const existingTitle = data[STORAGE_KEYS.GUIDE_TITLE] || "";
+  
+  // Only set recording to true, preserve existing steps for resume functionality
   await chrome.storage.local.set({
     [STORAGE_KEYS.IS_RECORDING]: true,
-    [STORAGE_KEYS.STEPS]: [],
-    [STORAGE_KEYS.GUIDE_TITLE]: ""
+    [STORAGE_KEYS.STEPS]: existingSteps,
+    [STORAGE_KEYS.GUIDE_TITLE]: existingTitle
   });
 
   if (!chrome.scripting?.executeScript) {
     return;
   }
 
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-  const activeTab = tabs[0];
-
-  if (!activeTab?.id || !activeTab.url) {
-    return;
-  }
-
-  if (activeTab.url.startsWith("chrome://") || activeTab.url.startsWith("chrome-extension://")) {
-    return;
-  }
-
+  // Inject content script into ALL open tabs to enable cross-tab recording
   try {
-    await chrome.scripting.executeScript({
-      target: { tabId: activeTab.id },
-      files: ["content.js"]
-    });
+    const allTabs = await chrome.tabs.query({});
+    
+    for (const tab of allTabs) {
+      // Skip chrome:// and other restricted URLs
+      if (!tab.id || !tab.url) continue;
+      if (tab.url.startsWith("chrome://") || 
+          tab.url.startsWith("chrome-extension://") ||
+          tab.url.startsWith("edge://") ||
+          tab.url.startsWith("about:")) {
+        continue;
+      }
+
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ["content.js"]
+        });
+      } catch (error) {
+        // Silently skip tabs that can't be injected (e.g., chrome web store)
+        console.log(`Skipped injection for tab ${tab.id}:`, error.message);
+      }
+    }
   } catch (error) {
     console.warn("Runtime content script injection skipped:", error);
   }

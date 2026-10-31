@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ActionDraft</title>
-    <link rel="icon" type="image/svg+xml" href="dept-icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
     <style>
       :root {
         color-scheme: light;
@@ -53,7 +53,7 @@
       }
 
       .descrition { 
-        margin: 14px 0 0;
+        margin: 14px 0 14px;
         font-size: 12px;
         color: rgba(0,0,0,0.5);
       }
@@ -67,20 +67,21 @@
 
       .controls {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 8px;
-        padding: 14px 16px;
         background: #ffffff;
-        border-bottom: 1px solid #e2e8f0;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 14px;
       }
 
       button {
-        min-height: 38px;
-        border-radius: 10px;
+        min-height: 24px;
+        border-radius: 5px;
         border: 1px solid #cbd5e1;
         background: #ffffff;
+        font-size: 12px;
         color: #0f172a;
-        font-weight: 600;
+        font-weight: 500;
         cursor: pointer;
       }
 
@@ -105,6 +106,12 @@
         background: #fef2f2;
       }
 
+      #clearBtn {
+        border-color: #f59e0b;
+        color: #92400e;
+        background: #fef3c7;
+      }
+
       #steps {
         height: 100%;
         overflow: auto;
@@ -116,7 +123,7 @@
         left: 50%;
         bottom: 10px;
         transform: translateX(-50%);
-        min-width: 240px;
+        min-width: 252px;
         display: inline-flex;
         align-items: center;
         gap: 2px;
@@ -126,7 +133,12 @@
         border: 1px solid #e2e8f0;
         border-radius: 999px;
         padding: 4px 10px;
-        pointer-events: none;
+        pointer-events: auto;
+      }
+
+      .steps-footer a {
+        color: #64748b;
+        pointer-events: auto;
       }
 
       .steps-footer-logo {
@@ -140,12 +152,90 @@
       }
 
       .step {
+        position: relative;
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
         padding: 12px;
         margin-bottom: 12px;
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        transition: all 0.2s ease;
+      }
+
+      /* SortableJS drag states */
+      .sortable-ghost {
+        opacity: 0.4;
+        background: #f1f5f9;
+      }
+
+      .sortable-chosen {
+        cursor: grabbing;
+      }
+
+      .sortable-drag {
+        opacity: 1;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .drag-handle {
+        position: absolute;
+        top: 8px;
+        left: 4px;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: grab;
+        user-select: none;
+        letter-spacing: -2px;
+      }
+
+      .drag-handle:active {
+        cursor: grabbing;
+      }
+
+      .step:hover .drag-handle {
+        color: #475569;
+      }
+
+      .delete-step-btn {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 1px solid #e5e7eb;
+        border-radius: 50px;
+        background: #ffffff;
+        color: #0f172a;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: auto;
+      }
+
+      .delete-step-btn:hover {
+        color: #dc2626;
+        background: #fef2f2;
+        border-color: #dc2626;
+        transform: scale(1.1);
+      }
+
+      .delete-step-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        transform: none;
       }
 
       .step-title {
@@ -153,6 +243,7 @@
         font-size: 12px;
         color: #475569;
         font-weight: 600;
+        padding-left: 14px;
       }
 
       .step-desc {
@@ -191,26 +282,25 @@
       <header class="header">
         <h1 class="title">ActionDraft <span id="status">Loading session…</span></h1>
         <p class="descrition">Transform your clicks into a professional guide instantly. Just record, refine, and export.</p>
-      </header>
 
-      <section class="controls">
-        <button id="startBtn">Start</button>
-        <button id="stopBtn">Stop</button>
-        <button id="editGuideBtn">Edit Draft</button>
-        <button id="downloadPdfBtn">Export PDF</button>
-      </section>
+        <section class="controls">
+          <button id="startBtn">Start</button>
+          <button id="stopBtn">Stop</button>
+          <button id="clearBtn" title="Clear all steps and start new session">Clear</button>
+          <button id="editGuideBtn">Edit</button>
+          <button id="downloadPdfBtn">Export</button>
+        </section>
+      </header>      
 
       <div class="steps-shell">
         <main id="steps"></main>
-        <div class="steps-footer">          
-          <span>© 2026 ActionDraft. Powered By </span>
-          <span class="steps-footer-logo">
-            <img src="./logo.svg" alt="DEPT" />
-          </span>
+        <div class="steps-footer">           
+          <span>© 2026 ActionDraft | <a href="https://wasilahmad.github.io/actionDraftWeb/donation.html" target="_blank" rel="noreferrer">Buy me a coffee</a> | <a href="" target="_blank" rel="noreferrer">Support</a></span>
         </div>
       </div>
     </div>
 
+    <script src="Sortable.min.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>
